@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+<mule xmlns:mock="http://www.mulesoft.org/schema/mule/mock" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
-http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/mock http://www.mulesoft.org/schema/mule/mock/current/mule-mock.xsd">
     <munit:config name="munit" doc:name="MUnit configuration"/>
     <spring:beans>
         <spring:import resource="classpath:order-system.xml"/>
     </spring:beans>
     <munit:test name="retrieveorder_returnList_True" description="Caling retrieve orders flow returns an object of type java list">
+        <mock:when messageProcessor="ws:consumer" doc:name="Mock: SOAP Response ">
+            <mock:then-return payload="#[getResource('orderResults.xml').asString()]" mimeType="text/xml"/>
+        </mock:when>
         <munit:set payload="#[]" doc:name="Set Message: inbound property">
             <munit:inbound-properties>
                 <munit:inbound-property key="http.query.params" value="#[{'timeFrame'   :   'all'    }]"/>
@@ -15,5 +19,6 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
         </munit:set>
         <flow-ref name="retrieveOrders" doc:name="retrieveOrders"/>
         <munit:assert-true message="Failed...expected payload type as Java List, but found #[payload.getClass().getName()] instead!" condition="#[payload is java.util.List]" doc:name="Assert True"/>
+        <munit:assert-true condition="#[payload.size() &gt; 0]" doc:name="Assert True"/>
     </munit:test>
 </mule>
